@@ -1,0 +1,43 @@
+---
+layout: runbook
+title: '#4471 · two date defects'
+owner: support desk
+status: known
+reviewed: 2026-11-10
+signature: btbrq
+---
+
+<script>
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const signature = 'btbrq';
+</script>
+
+The export has **427 rows but 412 unique report IDs**. Fifteen rows repeat an existing ID, so
+each ID is counted once. All 412 unique reports were merged into #4471.
+
+## The split
+
+Reports are classified using the tenant's registered locale and form, plus the report channel.
+The intake tag and reporter's browser locale are not the source of truth.
+
+| Cause | Reports | Scope | Why |
+| --- | ---: | --- | --- |
+| `parser` | **379** | All 11 day-first tenants; all channels except booking-v3 form submissions | The shared parser reads month first, so day-first dates flip. |
+| `hint` | **33** | `form` reports from the three booking-v3 tenants: Alder Physio, Copper Studio, and Pale Harbour | The form says `MM/DD/YYYY`, while the tenant date order is day first. |
+
+Together, these two causes account for all **412** unique reports. The intake tag disagrees with
+the tenant-based cause for 38 reports: 23 parser reports are tagged `hint`, and 15 hint reports
+are tagged `parser`.
+
+## One-day reports
+
+The desk notes flag five reports as one-day moves. They remain in the `parser` count under the
+tenant-based rule; they are a note within that cause, not a third issue.
+
+## Tickets
+
+- [`parser` issue · 379 reports](https://github.com/btbrq/s01e03-what-it-shows/issues/1): shared month-first parser for day-first tenants.
+- [`hint` issue · 33 reports](https://github.com/btbrq/s01e03-what-it-shows/issues/2): booking-v3 date-format hint conflicts with day-first tenants.
+
+<RenderStamp {signature} />
